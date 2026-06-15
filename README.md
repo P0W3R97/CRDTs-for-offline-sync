@@ -1,5 +1,5 @@
 # CRDTs-for-offline-sync
-Local-first medication order sync using Conflict-Free Replicated Data Types. Automatic merging where safe, human review where it matters.
+A Python implementation of Conflict-Free Replicated Data Types (CRDTs) for safe offline synchronization of medication orders. The system automatically merges concurrent edits where safe, and flags clinically significant conflicts for human review.
 
 CRDTs-for-offline-sync/
   crdt/
