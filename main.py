@@ -23,28 +23,18 @@ detector = ConflictDetector()
 @app.get("/sync")
 def get_state():
     """Client pulls the current merged state from the relay."""
-    return serialize_order(server_order)
+    return server_order.to_dict()
 
 
 @app.post("/sync")
 def post_state(client_order: dict):
     """Client pushes their local state. Relay merges it in."""
     global server_order
-    incoming = deserialize_order(client_order)
+    incoming = MedicationOrder.from_dict(client_order)
     server_order = server_order.merge(incoming)
 
     conflicts = detector.scan(server_order)
     return {
-        "merged_state": serialize_order(server_order),
+        "merged_state": server_order.to_dict(),
         "conflicts": [c.field_name for c in conflicts]
     }
-
-
-def serialize_order(order):
-    """Placeholder — we'll build this out next."""
-    pass
-
-
-def deserialize_order(data):
-    """Placeholder — we'll build this out next."""
-    pass

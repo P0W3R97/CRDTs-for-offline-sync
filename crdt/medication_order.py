@@ -77,3 +77,34 @@ class MedicationOrder:
             f"  bp_checks={self.bp_checks.value()}\n"
             f")"
         )
+    
+    def to_dict(self):
+        return {
+            "patient_id":      self.patient_id.to_dict(),
+            "medication_name": self.medication_name.to_dict(),
+            "dosage":          self.dosage.to_dict(),
+            "frequency":       self.frequency.to_dict(),
+            "route":           self.route.to_dict(),
+            "status":          self.status.to_dict(),
+            "prescriber":      self.prescriber.to_dict(),
+            "start_date":      self.start_date.to_dict(),
+            "end_date":        self.end_date.to_dict(),
+            "clinical_notes":  self.clinical_notes.to_dict(),
+            "bp_checks":       self.bp_checks.to_dict(),
+        }
+    
+    @staticmethod
+    def from_dict(data):
+        order = MedicationOrder()
+        order.patient_id      = LWWRegister.from_dict(data["patient_id"])
+        order.medication_name = MVRegister.from_dict(data["medication_name"])
+        order.dosage          = MVRegister.from_dict(data["dosage"])
+        order.frequency       = MVRegister.from_dict(data["frequency"])
+        order.route           = MVRegister.from_dict(data["route"])
+        order.status          = MVRegister.from_dict(data["status"])
+        order.prescriber      = LWWRegister.from_dict(data["prescriber"])
+        order.start_date      = MVRegister.from_dict(data["start_date"])
+        order.end_date        = MVRegister.from_dict(data["end_date"])
+        order.clinical_notes  = GSet.from_dict(data["clinical_notes"])
+        order.bp_checks       = GSet.from_dict(data["bp_checks"])
+        return order

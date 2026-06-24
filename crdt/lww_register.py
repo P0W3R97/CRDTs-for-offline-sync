@@ -37,3 +37,19 @@ class LWWRegister:
 
     def __repr__(self):
         return f"LWWRegister(value={self._value}, ts={self._timestamp}, replica={self._replica_id})"
+    
+    def to_dict(self):
+        return {
+            "type": "LWWRegister",
+            "value": self._value,
+            "timestamp": self._timestamp,
+            "replica_id": self._replica_id
+        }
+    
+    @staticmethod
+    def from_dict(data):
+        reg = LWWRegister()
+        reg._value = data["value"]
+        reg._timestamp = data["timestamp"]
+        reg._replica_id = data["replica_id"]
+        return reg

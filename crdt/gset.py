@@ -21,3 +21,10 @@ class GSet:
 
     def __repr__(self):
         return f"GSet({self._data})"
+    
+    def to_dict(self):
+        return {"type": "GSet", "items": list(self._data)}
+
+    @staticmethod
+    def from_dict(data):
+        return GSet(items=data["items"])

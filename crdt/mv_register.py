@@ -61,3 +61,18 @@ class MVRegister:
 
     def __repr__(self):
         return f"MVRegister({self._values})"
+    
+    def to_dict(self):
+        return {
+            "type": "MVRegister",
+            "values": [
+                {"value": v, "clock": vc}
+                for v, vc in self._values
+            ]
+        }
+    
+    @staticmethod
+    def from_dict(data):
+        reg = MVRegister()
+        reg._values = [(item["value"], item["clock"]) for item in data["values"]]
+        return reg
