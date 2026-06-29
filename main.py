@@ -38,3 +38,21 @@ def post_state(client_order: dict):
         "merged_state": server_order.to_dict(),
         "conflicts": [c.field_name for c in conflicts]
     }
+
+
+@app.post("/reset")
+def reset_state():
+    """Resets server_order back to its original baseline values.
+    Used between test scenarios so each one starts from a known clean state."""
+    global server_order
+    server_order = MedicationOrder()
+    server_order.patient_id.set("patient-001", replica_id="system")
+    server_order.medication_name.set("Lisinopril", replica_id="system")
+    server_order.dosage.set("10mg", replica_id="system")
+    server_order.frequency.set("once daily", replica_id="system")
+    server_order.route.set("oral", replica_id="system")
+    server_order.status.set("active", replica_id="system")
+    server_order.prescriber.set("Dr. Smith", replica_id="system")
+    server_order.start_date.set("2026-06-01", replica_id="system")
+    server_order.end_date.set("2026-06-30", replica_id="system")
+    return {"status": "reset"}
