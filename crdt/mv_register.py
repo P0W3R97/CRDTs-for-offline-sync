@@ -6,10 +6,8 @@ class MVRegister:
 
     def set(self, value, replica_id, vector_clock=None):
         if vector_clock is None:
-            # start from an empty clock and increment this replica
             vector_clock = {}
         
-        # increment this replica's counter in the clock
         new_clock = dict(vector_clock)
         new_clock[replica_id] = new_clock.get(replica_id, 0) + 1
 
@@ -25,6 +23,15 @@ class MVRegister:
     def merge(self, other):
         merged = MVRegister()
         combined = self._values + other._values
+
+        deduped = []
+        seen = set()
+        for v, vc in combined:
+            key = (v, frozenset(vc.items()))
+            if key not in seen:
+                seen.add(key)
+                deduped.append((v, vc))
+        combined = deduped
 
         # keep only values whose clocks are not dominated by any other clock
         merged._values = [
@@ -49,12 +56,10 @@ class MVRegister:
 
     @staticmethod
     def _dominates(vc_a, vc_b):
-        # vc_a dominates vc_b if every key in vc_b has a counter <= vc_a
         all_keys = set(vc_a) | set(vc_b)
         return all(vc_a.get(k, 0) >= vc_b.get(k, 0) for k in all_keys)
 
     def __eq__(self, other):
-        # order doesn't matter, compare as sets of (value, frozenset) pairs
         def normalize(values):
             return set((v, frozenset(vc.items())) for v, vc in values)
         return normalize(self._values) == normalize(other._values)
