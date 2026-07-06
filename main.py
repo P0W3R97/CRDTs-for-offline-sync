@@ -1,8 +1,16 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from crdt.medication_order import MedicationOrder
 from crdt.conflict_detector import ConflictDetector
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # The relay's single source of truth — starts as a fresh order.
 # In a real system this would be created once per patient order.

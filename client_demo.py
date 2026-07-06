@@ -12,7 +12,7 @@ Usage:
 import requests
 from crdt.medication_order import MedicationOrder
 
-RELAY_HOST = "http://54.196.235.160:8000"   # <-- update this everytime you want to run with a new EC2 instance
+RELAY_HOST = "http://34.228.17.130:8000"   # <-- update this everytime you want to run with a new EC2 instance
 SYNC_URL = f"{RELAY_HOST}/sync"
 RESET_URL = f"{RELAY_HOST}/reset"
 
