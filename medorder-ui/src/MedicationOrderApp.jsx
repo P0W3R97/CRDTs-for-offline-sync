@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const RELAY_URL = "http://<your-ec2-ip>:8000"; // <-- update this
+const RELAY_URL = "http://54.196.217.13:8000"; // <-- update this
 
 // ─── CRDT helpers (mirrors Python MVRegister / GSet logic in JS) ──────────────
 
@@ -24,6 +24,16 @@ function incrementClock(baseClock, replicaId) {
   return newClock;
 }
 
+function mergeAllClocks(mvRegisterValues) {
+  const merged = {};
+  for (const { clock } of mvRegisterValues) {
+    for (const [replica, count] of Object.entries(clock)) {
+      merged[replica] = Math.max(merged[replica] || 0, count);
+    }
+  }
+  return merged;
+}
+
 /**
  * Build a local MedicationOrder dict in the relay's JSON format,
  * applying the replica's edits on top of the last known server state.
@@ -39,14 +49,16 @@ function incrementClock(baseClock, replicaId) {
  * For LWW fields (patient_id, prescriber): produce a single value with
  * the current wall-clock timestamp.
  */
-function buildLocalOrder(serverOrder, edits, replicaId, gsetAdditions) {
+function buildLocalOrder(serverOrder, edits, replicaId, gsetAdditions, isResolution = false) {
   const now = Date.now();
 
   // Helper: build an MVRegister dict for one field
   function mvField(fieldName) {
     const serverValues = serverOrder?.[fieldName]?.values ?? [];
     if (edits[fieldName] !== undefined && edits[fieldName] !== "") {
-      const baseClock = getBaseClock(serverValues);
+      const baseClock = isResolution
+        ? mergeAllClocks(serverValues)
+        : getBaseClock(serverValues);
       const newClock = incrementClock(baseClock, replicaId);
       return { type: "MVRegister", values: [{ value: edits[fieldName], clock: newClock }] };
     }
@@ -599,7 +611,7 @@ export default function App() {
     setSyncStatus("syncing");
     setAlertMsg(null);
     try {
-      const localOrder = buildLocalOrder(serverOrder, edits, replicaId, gsetAdditions);
+      const localOrder = buildLocalOrder(serverOrder, edits, replicaId, gsetAdditions, false);
       const res = await fetch(`${RELAY_URL}/sync`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -634,7 +646,7 @@ export default function App() {
     setSyncStatus("syncing");
     setAlertMsg(null);
     try {
-      const localOrder = buildLocalOrder(serverOrder, resolvedEdits, replicaId, {});
+      const localOrder = buildLocalOrder(serverOrder, resolvedEdits, replicaId, {}, true);
       const res = await fetch(`${RELAY_URL}/sync`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -730,7 +742,7 @@ export default function App() {
                     style={styles.fieldInput(conflict)}
                     value={edits[key] ?? (conflict ? "" : displayValue(serverOrder?.[key]))}
                     onChange={e => handleEdit(key, e.target.value)}
-                    placeholder={conflict ? "Conflicted — resolve below" : `Enter ${label.toLowerCase()}`}
+                    placeholder={conflict ? "Conflicted — resolve above" : `Enter ${label.toLowerCase()}`}
                   />
                   {conflict && (
                     <div style={{ fontSize: 12, color: COLORS.amber, marginTop: 2 }}>
